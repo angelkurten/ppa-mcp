@@ -1,0 +1,13 @@
+[Unit]
+Description=PPA MCP server (sistema anti-procrastinacion)
+After=network.target
+
+[Service]
+WorkingDirectory=%h/ppa-mcp
+EnvironmentFile=%h/ppa-mcp/.env
+ExecStart=/usr/bin/node src/server.js
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
