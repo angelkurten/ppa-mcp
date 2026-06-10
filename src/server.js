@@ -12,6 +12,7 @@ import {
   crearTarea,
   actualizarTarea,
   borrarTarea,
+  marcarCompletada,
   arbol,
   hoyYmd,
 } from "./clickup.js";
@@ -143,7 +144,7 @@ function construirServidor() {
       inputSchema: { task_id: z.string().describe("ID de la tarea o subtarea completada") },
     },
     async ({ task_id }) => {
-      const t = await actualizarTarea(task_id, { estado: process.env.DONE_STATUS || "complete" });
+      const t = await marcarCompletada(task_id);
       return texto(`✅ Hecho: ${t.nombre}`);
     }
   );

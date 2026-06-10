@@ -82,6 +82,33 @@ export async function borrarTarea(taskId) {
   await api("DELETE", `/task/${taskId}`);
 }
 
+const estadosPorLista = new Map();
+
+async function estadosDeLista(listId) {
+  if (!estadosPorLista.has(listId)) {
+    const lista = await api("GET", `/list/${listId}`);
+    estadosPorLista.set(listId, lista.statuses || []);
+  }
+  return estadosPorLista.get(listId);
+}
+
+// Cierra una tarea resolviendo el estado contra los de su lista: DONE_STATUS
+// si existe ahí (override opcional); si no, el primero de tipo closed/done.
+export async function marcarCompletada(taskId) {
+  const tarea = await api("GET", `/task/${taskId}`);
+  const estados = await estadosDeLista(tarea.list.id);
+  const preferido = process.env.DONE_STATUS?.toLowerCase();
+  const estado =
+    estados.find((s) => s.status.toLowerCase() === preferido) ??
+    estados.find((s) => s.type === "closed" || s.type === "done");
+  if (!estado) {
+    throw new Error(
+      `La lista ${tarea.list.id} no tiene estado de cierre. Estados: ${estados.map((s) => s.status).join(", ")}`
+    );
+  }
+  return actualizarTarea(taskId, { estado: estado.status });
+}
+
 // Estructura las tareas de una lista en árbol tarea → micro-pasos (subtareas).
 export function arbol(tareas) {
   const raices = tareas.filter((t) => !t.padre);
